@@ -7,7 +7,6 @@ import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
-import List "mo:core/List";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import Migration "migration";
@@ -100,22 +99,20 @@ actor {
     error : ?Text;
   };
 
-  var adminPassword = "sete123";
+  var adminPassword = "admin123";
+  var idCounter = 0;
+  var settings : Settings = {
+    brandName = "SETE";
+    pickupAddress = "Blaumaņa 34-2, Rīga";
+    workHoursText = "P–Sv 12:00–22:00";
+    deliveryNote = "Piegāde Rīgā. Precizēsim laiku pēc pasūtījuma.";
+    minOrderCents = 0;
+    currencySymbol = "€";
+  };
 
   let offers = Map.empty<Text, Offer>();
   let orders = Map.empty<Text, Order>();
   let sessions = Map.empty<Text, AdminSession>();
-
-  var settings : Settings = {
-    brandName = "SETE";
-    pickupAddress = "Sete Noodles & Sushi, R. Prof. Francisco Link, 3512 - Capão da Imbuia, Curitiba - PR, 82810-350";
-    workHoursText = "Seg a Sex, 18h - 22h";
-    deliveryNote = "Entrega em até 30min da hora agendada";
-    minOrderCents = 1000;
-    currencySymbol = "R$";
-  };
-
-  var idCounter = 0;
 
   func generateId() : Text {
     idCounter += 1;
@@ -146,7 +143,7 @@ actor {
       return {
         ok = false;
         orderId = null;
-        error = ?" Invalid phone number ";
+        error = ?"Invalid phone number";
       };
     };
 
@@ -154,7 +151,7 @@ actor {
       return {
         ok = false;
         orderId = null;
-        error = ?" Invalid address for delivery ";
+        error = ?"Invalid address for delivery";
       };
     };
 
@@ -202,7 +199,7 @@ actor {
   // Admin Authentication
   public shared ({ caller }) func adminLogin(password : Text) : async SessionResponse {
     if (password != adminPassword) {
-      return { ok = false; token = null; error = ?" Invalid password " };
+      return { ok = false; token = null; error = ?"Invalid password" };
     };
 
     let token = generateId();
@@ -474,3 +471,4 @@ actor {
     };
   };
 };
+

@@ -10,7 +10,9 @@ import Runtime "mo:core/Runtime";
 import List "mo:core/List";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type Offer = {
     id : Text;
@@ -98,7 +100,7 @@ actor {
     error : ?Text;
   };
 
-  var adminPassword = "sete_admin_123";
+  var adminPassword = "sete123";
 
   let offers = Map.empty<Text, Offer>();
   let orders = Map.empty<Text, Order>();
@@ -144,7 +146,7 @@ actor {
       return {
         ok = false;
         orderId = null;
-        error = ?"Invalid phone number";
+        error = ?" Invalid phone number ";
       };
     };
 
@@ -152,7 +154,7 @@ actor {
       return {
         ok = false;
         orderId = null;
-        error = ?"Invalid address for delivery";
+        error = ?" Invalid address for delivery ";
       };
     };
 
@@ -200,7 +202,7 @@ actor {
   // Admin Authentication
   public shared ({ caller }) func adminLogin(password : Text) : async SessionResponse {
     if (password != adminPassword) {
-      return { ok = false; token = null; error = ?"Invalid password" };
+      return { ok = false; token = null; error = ?" Invalid password " };
     };
 
     let token = generateId();

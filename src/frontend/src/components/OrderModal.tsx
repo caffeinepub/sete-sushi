@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useNavigate } from "@tanstack/react-router";
@@ -38,6 +39,7 @@ interface FormState {
 
 interface FormErrors {
   phone?: string;
+  name?: string;
   address?: string;
   general?: string;
 }
@@ -74,6 +76,9 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
     const newErrors: FormErrors = {};
     if (!form.phone.trim() || form.phone.trim().length < 6) {
       newErrors.phone = "Ievadiet derīgu tālruņa numuru (min. 6 rakstzīmes)";
+    }
+    if (!form.name.trim() || form.name.trim().length < 2) {
+      newErrors.name = "Ievadiet vārdu (min. 2 rakstzīmes)";
     }
     if (form.deliveryType === "DELIVERY") {
       if (!form.address.trim() || form.address.trim().length < 5) {
@@ -155,7 +160,7 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {/* Phone — FIRST and required */}
+          {/* 1. Phone — FIRST and required */}
           <div className="space-y-1.5">
             <Label htmlFor="order-phone" className="text-sm font-medium">
               Tālrunis <span className="text-destructive">*</span>
@@ -175,13 +180,10 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             )}
           </div>
 
-          {/* Name */}
+          {/* 2. Name — required */}
           <div className="space-y-1.5">
             <Label htmlFor="order-name" className="text-sm font-medium">
-              Vārds{" "}
-              <span className="text-muted-foreground/60 text-xs">
-                (nav obligāts)
-              </span>
+              Vārds <span className="text-destructive">*</span>
             </Label>
             <Input
               id="order-name"
@@ -191,11 +193,14 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
               value={form.name}
               onChange={(e) => updateField("name", e.target.value)}
               autoComplete="name"
-              className="bg-input border-border text-base"
+              className={`bg-input border-border text-base ${errors.name ? "border-destructive" : ""}`}
             />
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name}</p>
+            )}
           </div>
 
-          {/* Delivery type */}
+          {/* 3. Delivery type */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">Piegādes veids</Label>
             <ToggleGroup
@@ -222,7 +227,7 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             </ToggleGroup>
           </div>
 
-          {/* Address — only for DELIVERY */}
+          {/* 4a. Address — only for DELIVERY */}
           {form.deliveryType === "DELIVERY" && (
             <div className="space-y-1.5">
               <Label htmlFor="order-address" className="text-sm font-medium">
@@ -244,7 +249,7 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             </div>
           )}
 
-          {/* Pickup address info */}
+          {/* 4b. Pickup address info */}
           {form.deliveryType === "PICKUP" && (
             <div className="flex items-start gap-2 bg-muted/40 rounded-md p-3 border border-border/50">
               <MapPin className="w-4 h-4 text-gold mt-0.5 flex-shrink-0" />
@@ -257,7 +262,7 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             </div>
           )}
 
-          {/* Desired time */}
+          {/* 5. Desired time */}
           <div className="space-y-1.5">
             <Label htmlFor="order-time" className="text-sm font-medium">
               Vēlamais laiks{" "}
@@ -276,7 +281,7 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             />
           </div>
 
-          {/* Notes */}
+          {/* 6. Notes */}
           <div className="space-y-1.5">
             <Label htmlFor="order-notes" className="text-sm font-medium">
               Piezīmes{" "}
@@ -300,6 +305,55 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             <p className="text-xs text-muted-foreground/70 italic">
               {settings.deliveryNote}
             </p>
+          )}
+
+          {/* 7. Order summary */}
+          {offer && (
+            <>
+              <Separator className="bg-border/40" />
+              <div
+                data-ocid="order.summary"
+                className="bg-muted/20 border border-border/40 rounded-lg p-3.5 space-y-2"
+              >
+                <div className="flex items-center gap-3">
+                  {offer.imageUrl ? (
+                    <img
+                      src={offer.imageUrl}
+                      alt={offer.name}
+                      className="w-12 h-12 rounded-md object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-display text-gold font-bold">
+                        {offer.name.slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gold truncate">
+                      {offer.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {Number(offer.pieces)} gabali ·{" "}
+                      <span className="text-foreground/80 font-medium">
+                        {formatPrice(offer.priceCents, settings.currencySymbol)}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  {form.deliveryType === "DELIVERY" ? (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      Piegāde
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                      Izņemšana: {settings.pickupAddress}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </>
           )}
 
           {/* Error */}
@@ -326,7 +380,7 @@ export function OrderModal({ offer, open, onOpenChange }: OrderModalProps) {
             </div>
           )}
 
-          {/* Submit */}
+          {/* 8. Submit */}
           <Button
             type="submit"
             data-ocid="order.submit_button"

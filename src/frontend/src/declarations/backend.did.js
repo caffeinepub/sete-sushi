@@ -78,9 +78,11 @@ export const CreateOrderResponse = IDL.Record({
 export const Settings = IDL.Record({
   'currencySymbol' : IDL.Text,
   'deliveryNote' : IDL.Text,
+  'email' : IDL.Text,
   'minOrderCents' : IDL.Nat,
   'pickupAddress' : IDL.Text,
   'brandName' : IDL.Text,
+  'phone' : IDL.Text,
   'workHoursText' : IDL.Text,
 });
 
@@ -166,7 +168,17 @@ export const idlService = IDL.Service({
       [],
     ),
   'adminUpdateSettings' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text],
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
       [IDL.Record({ 'ok' : IDL.Bool, 'error' : IDL.Opt(IDL.Text) })],
       [],
     ),
@@ -180,9 +192,29 @@ export const idlService = IDL.Service({
       [CreateOrderResponse],
       [],
     ),
-  'getOfferById' : IDL.Func([IDL.Text], [IDL.Opt(Offer)], ['query']),
+  'getOfferById' : IDL.Func(
+      [IDL.Text],
+      [
+        IDL.Record({
+          'ok' : IDL.Bool,
+          'offer' : IDL.Opt(Offer),
+          'error' : IDL.Opt(IDL.Text),
+        }),
+      ],
+      ['query'],
+    ),
   'getSettings' : IDL.Func([], [Settings], ['query']),
-  'listOffersPublic' : IDL.Func([], [IDL.Vec(Offer)], ['query']),
+  'listOffersPublic' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'ok' : IDL.Bool,
+          'data' : IDL.Vec(Offer),
+          'error' : IDL.Opt(IDL.Text),
+        }),
+      ],
+      ['query'],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -258,9 +290,11 @@ export const idlFactory = ({ IDL }) => {
   const Settings = IDL.Record({
     'currencySymbol' : IDL.Text,
     'deliveryNote' : IDL.Text,
+    'email' : IDL.Text,
     'minOrderCents' : IDL.Nat,
     'pickupAddress' : IDL.Text,
     'brandName' : IDL.Text,
+    'phone' : IDL.Text,
     'workHoursText' : IDL.Text,
   });
   
@@ -346,7 +380,17 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'adminUpdateSettings' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
         [IDL.Record({ 'ok' : IDL.Bool, 'error' : IDL.Opt(IDL.Text) })],
         [],
       ),
@@ -360,9 +404,29 @@ export const idlFactory = ({ IDL }) => {
         [CreateOrderResponse],
         [],
       ),
-    'getOfferById' : IDL.Func([IDL.Text], [IDL.Opt(Offer)], ['query']),
+    'getOfferById' : IDL.Func(
+        [IDL.Text],
+        [
+          IDL.Record({
+            'ok' : IDL.Bool,
+            'offer' : IDL.Opt(Offer),
+            'error' : IDL.Opt(IDL.Text),
+          }),
+        ],
+        ['query'],
+      ),
     'getSettings' : IDL.Func([], [Settings], ['query']),
-    'listOffersPublic' : IDL.Func([], [IDL.Vec(Offer)], ['query']),
+    'listOffersPublic' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'ok' : IDL.Bool,
+            'data' : IDL.Vec(Offer),
+            'error' : IDL.Opt(IDL.Text),
+          }),
+        ],
+        ['query'],
+      ),
   });
 };
 

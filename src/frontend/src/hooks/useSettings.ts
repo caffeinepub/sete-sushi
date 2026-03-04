@@ -9,6 +9,8 @@ export const DEFAULT_SETTINGS: Settings = {
   deliveryNote: "Piegāde Rīgā. Precizēsim laiku pēc pasūtījuma.",
   minOrderCents: BigInt(0),
   currencySymbol: "€",
+  phone: "+371 XXXXXXXX",
+  email: "sete.latvia@gmail.com",
 };
 
 export function useSettings() {

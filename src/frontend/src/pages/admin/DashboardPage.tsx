@@ -81,7 +81,7 @@ export function DashboardPage() {
 
   const offersCount = offersRes?.data?.length ?? "—";
   const newOrdersCount =
-    ordersRes?.data?.filter((o) => o.statusText === "NEW").length ?? "—";
+    ordersRes?.data?.filter((o) => o.statusText === "New").length ?? "—";
   const ordersCount = ordersRes?.data?.length ?? "—";
 
   return (

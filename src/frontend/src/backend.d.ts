@@ -15,9 +15,11 @@ export interface OrdersListResponse {
 export interface Settings {
     currencySymbol: string;
     deliveryNote: string;
+    email: string;
     minOrderCents: bigint;
     pickupAddress: string;
     brandName: string;
+    phone: string;
     workHoursText: string;
 }
 export interface OffersListResponse {
@@ -111,13 +113,21 @@ export interface backendInterface {
         ok: boolean;
         error?: string;
     }>;
-    adminUpdateSettings(token: string, brandName: string, pickupAddress: string, workHoursText: string, deliveryNote: string, minOrderCents: bigint, currencySymbol: string): Promise<{
+    adminUpdateSettings(token: string, brandName: string, pickupAddress: string, workHoursText: string, deliveryNote: string, minOrderCents: bigint, currencySymbol: string, phone: string, email: string): Promise<{
         ok: boolean;
         error?: string;
     }>;
     adminUploadOfferImage(token: string, offerId: string, imageBytes: Uint8Array, mimeType: string, filename: string): Promise<UploadImageResponse>;
     createOrder(offerId: string, customerPhone: string, customerName: string, deliveryType: string, address: string, desiredTime: string, notes: string): Promise<CreateOrderResponse>;
-    getOfferById(id: string): Promise<Offer | null>;
+    getOfferById(id: string): Promise<{
+        ok: boolean;
+        offer?: Offer;
+        error?: string;
+    }>;
     getSettings(): Promise<Settings>;
-    listOffersPublic(): Promise<Array<Offer>>;
+    listOffersPublic(): Promise<{
+        ok: boolean;
+        data: Array<Offer>;
+        error?: string;
+    }>;
 }

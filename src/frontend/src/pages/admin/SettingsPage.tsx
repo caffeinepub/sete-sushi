@@ -20,6 +20,8 @@ interface SettingsForm {
   deliveryNote: string;
   minOrderEuros: string;
   currencySymbol: string;
+  phone: string;
+  email: string;
 }
 
 const DEFAULT_FORM: SettingsForm = {
@@ -29,6 +31,8 @@ const DEFAULT_FORM: SettingsForm = {
   deliveryNote: "Piegāde Rīgā. Precizēsim laiku pēc pasūtījuma.",
   minOrderEuros: "0.00",
   currencySymbol: "€",
+  phone: "+371 XXXXXXXX",
+  email: "sete.latvia@gmail.com",
 };
 
 export function SettingsPage() {
@@ -55,6 +59,8 @@ export function SettingsPage() {
         deliveryNote: settings.deliveryNote,
         minOrderEuros: (Number(settings.minOrderCents) / 100).toFixed(2),
         currencySymbol: settings.currencySymbol,
+        phone: settings.phone ?? "+371 XXXXXXXX",
+        email: settings.email ?? "sete.latvia@gmail.com",
       });
     }
   }, [settings]);
@@ -77,6 +83,8 @@ export function SettingsPage() {
         form.deliveryNote.trim(),
         BigInt(Number.isNaN(minOrderCents) ? 0 : minOrderCents),
         form.currencySymbol.trim() || "€",
+        form.phone.trim(),
+        form.email.trim(),
       );
     },
     onSuccess: (res) => {
@@ -198,6 +206,34 @@ export function SettingsPage() {
                   className="bg-input border-border"
                 />
               </div>
+            </div>
+
+            {/* Phone */}
+            <div className="space-y-1.5">
+              <Label htmlFor="s-phone">Tālrunis</Label>
+              <Input
+                id="s-phone"
+                data-ocid="admin.settings_phone_input"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => updateField("phone", e.target.value)}
+                placeholder="+371 2X XXX XXX"
+                className="bg-input border-border"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="s-email">E-pasts</Label>
+              <Input
+                id="s-email"
+                data-ocid="admin.settings_email_input"
+                type="email"
+                value={form.email}
+                onChange={(e) => updateField("email", e.target.value)}
+                placeholder="sete.latvia@gmail.com"
+                className="bg-input border-border"
+              />
             </div>
 
             {saveMutation.isError && (

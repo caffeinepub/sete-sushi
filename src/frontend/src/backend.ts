@@ -97,9 +97,11 @@ export interface OrdersListResponse {
 export interface Settings {
     currencySymbol: string;
     deliveryNote: string;
+    email: string;
     minOrderCents: bigint;
     pickupAddress: string;
     brandName: string;
+    phone: string;
     workHoursText: string;
 }
 export interface OffersListResponse {
@@ -210,15 +212,23 @@ export interface backendInterface {
         ok: boolean;
         error?: string;
     }>;
-    adminUpdateSettings(token: string, brandName: string, pickupAddress: string, workHoursText: string, deliveryNote: string, minOrderCents: bigint, currencySymbol: string): Promise<{
+    adminUpdateSettings(token: string, brandName: string, pickupAddress: string, workHoursText: string, deliveryNote: string, minOrderCents: bigint, currencySymbol: string, phone: string, email: string): Promise<{
         ok: boolean;
         error?: string;
     }>;
     adminUploadOfferImage(token: string, offerId: string, imageBytes: Uint8Array, mimeType: string, filename: string): Promise<UploadImageResponse>;
     createOrder(offerId: string, customerPhone: string, customerName: string, deliveryType: string, address: string, desiredTime: string, notes: string): Promise<CreateOrderResponse>;
-    getOfferById(id: string): Promise<Offer | null>;
+    getOfferById(id: string): Promise<{
+        ok: boolean;
+        offer?: Offer;
+        error?: string;
+    }>;
     getSettings(): Promise<Settings>;
-    listOffersPublic(): Promise<Array<Offer>>;
+    listOffersPublic(): Promise<{
+        ok: boolean;
+        data: Array<Offer>;
+        error?: string;
+    }>;
 }
 import type { CreateOrderResponse as _CreateOrderResponse, Offer as _Offer, OffersListResponse as _OffersListResponse, Order as _Order, OrdersListResponse as _OrdersListResponse, SessionResponse as _SessionResponse, UploadImageResponse as _UploadImageResponse, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -502,20 +512,20 @@ export class Backend implements backendInterface {
             return from_candid_record_n10(this._uploadFile, this._downloadFile, result);
         }
     }
-    async adminUpdateSettings(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: bigint, arg6: string): Promise<{
+    async adminUpdateSettings(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: bigint, arg6: string, arg7: string, arg8: string): Promise<{
         ok: boolean;
         error?: string;
     }> {
         if (this.processError) {
             try {
-                const result = await this.actor.adminUpdateSettings(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                const result = await this.actor.adminUpdateSettings(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 return from_candid_record_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.adminUpdateSettings(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            const result = await this.actor.adminUpdateSettings(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
             return from_candid_record_n10(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -547,18 +557,22 @@ export class Backend implements backendInterface {
             return from_candid_CreateOrderResponse_n23(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getOfferById(arg0: string): Promise<Offer | null> {
+    async getOfferById(arg0: string): Promise<{
+        ok: boolean;
+        offer?: Offer;
+        error?: string;
+    }> {
         if (this.processError) {
             try {
                 const result = await this.actor.getOfferById(arg0);
-                return from_candid_opt_n25(this._uploadFile, this._downloadFile, result);
+                return from_candid_record_n25(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getOfferById(arg0);
-            return from_candid_opt_n25(this._uploadFile, this._downloadFile, result);
+            return from_candid_record_n25(this._uploadFile, this._downloadFile, result);
         }
     }
     async getSettings(): Promise<Settings> {
@@ -575,18 +589,22 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async listOffersPublic(): Promise<Array<Offer>> {
+    async listOffersPublic(): Promise<{
+        ok: boolean;
+        data: Array<Offer>;
+        error?: string;
+    }> {
         if (this.processError) {
             try {
                 const result = await this.actor.listOffersPublic();
-                return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+                return from_candid_record_n12(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.listOffersPublic();
-            return from_candid_vec_n13(this._uploadFile, this._downloadFile, result);
+            return from_candid_record_n12(this._uploadFile, this._downloadFile, result);
         }
     }
 }
@@ -611,7 +629,7 @@ function from_candid_UploadImageResponse_n21(_uploadFile: (file: ExternalBlob) =
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Offer]): Offer | null {
+function from_candid_opt_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Offer]): Offer | null {
     return value.length === 0 ? null : from_candid_Offer_n14(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -753,6 +771,21 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
         ok: value.ok,
         error: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.error)),
         orderId: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.orderId))
+    };
+}
+function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    ok: boolean;
+    offer: [] | [_Offer];
+    error: [] | [string];
+}): {
+    ok: boolean;
+    offer?: Offer;
+    error?: string;
+} {
+    return {
+        ok: value.ok,
+        offer: record_opt_to_undefined(from_candid_opt_n26(_uploadFile, _downloadFile, value.offer)),
+        error: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.error))
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {

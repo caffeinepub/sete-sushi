@@ -63,9 +63,11 @@ export interface SessionResponse {
 export interface Settings {
   'currencySymbol' : string,
   'deliveryNote' : string,
+  'email' : string,
   'minOrderCents' : bigint,
   'pickupAddress' : string,
   'brandName' : string,
+  'phone' : string,
   'workHoursText' : string,
 }
 export interface UploadImageResponse {
@@ -138,7 +140,7 @@ export interface _SERVICE {
     { 'ok' : boolean, 'error' : [] | [string] }
   >,
   'adminUpdateSettings' : ActorMethod<
-    [string, string, string, string, string, bigint, string],
+    [string, string, string, string, string, bigint, string, string, string],
     { 'ok' : boolean, 'error' : [] | [string] }
   >,
   'adminUploadOfferImage' : ActorMethod<
@@ -149,9 +151,15 @@ export interface _SERVICE {
     [string, string, string, string, string, string, string],
     CreateOrderResponse
   >,
-  'getOfferById' : ActorMethod<[string], [] | [Offer]>,
+  'getOfferById' : ActorMethod<
+    [string],
+    { 'ok' : boolean, 'offer' : [] | [Offer], 'error' : [] | [string] }
+  >,
   'getSettings' : ActorMethod<[], Settings>,
-  'listOffersPublic' : ActorMethod<[], Array<Offer>>,
+  'listOffersPublic' : ActorMethod<
+    [],
+    { 'ok' : boolean, 'data' : Array<Offer>, 'error' : [] | [string] }
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

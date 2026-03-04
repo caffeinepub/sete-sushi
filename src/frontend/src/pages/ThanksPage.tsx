@@ -53,9 +53,9 @@ export function ThanksPage() {
               variant="outline"
               className="border-border/60 hover:border-primary/40 gap-2"
             >
-              <a href="tel:XXXX">
+              <a href={`tel:${settings.phone}`}>
                 <Phone className="w-4 h-4" />
-                Sazināties: XXXX
+                Sazināties: {settings.phone}
               </a>
             </Button>
             <Button
@@ -63,7 +63,7 @@ export function ThanksPage() {
               className="bg-primary/90 hover:bg-primary text-primary-foreground gap-2"
             >
               <Link to="/offers">
-                Vēl pasūtīt
+                Skatīt piedāvājumus
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>

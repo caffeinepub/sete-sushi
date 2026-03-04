@@ -34,14 +34,16 @@ export async function getSettings(actor: backendInterface): Promise<Settings> {
 export async function listOffersPublic(
   actor: backendInterface,
 ): Promise<Offer[]> {
-  return actor.listOffersPublic();
+  const res = await actor.listOffersPublic();
+  return res.data;
 }
 
 export async function getOfferById(
   actor: backendInterface,
   id: string,
 ): Promise<Offer | null> {
-  return actor.getOfferById(id);
+  const res = await actor.getOfferById(id);
+  return res.offer ?? null;
 }
 
 export async function createOrder(
@@ -218,6 +220,8 @@ export async function adminUpdateSettings(
   deliveryNote: string,
   minOrderCents: number,
   currencySymbol: string,
+  phone: string,
+  email: string,
 ): Promise<{ ok: boolean; error?: string }> {
   return actor.adminUpdateSettings(
     token,
@@ -227,6 +231,8 @@ export async function adminUpdateSettings(
     deliveryNote,
     BigInt(minOrderCents),
     currencySymbol,
+    phone,
+    email,
   );
 }
 

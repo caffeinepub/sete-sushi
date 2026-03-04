@@ -21,35 +21,29 @@ import { useSettings } from "../../hooks/useSettings";
 
 type StatusFilter =
   | "ALL"
-  | "NEW"
-  | "CONFIRMED"
-  | "IN_PROGRESS"
-  | "DELIVERED"
-  | "CANCELED";
+  | "New"
+  | "Preparing"
+  | "Ready"
+  | "Completed"
+  | "Cancelled";
 
 const STATUS_LABELS: Record<string, string> = {
-  NEW: "Jauns",
-  CONFIRMED: "Apstiprināts",
-  IN_PROGRESS: "Gatavo",
-  DELIVERED: "Piegādāts",
-  CANCELED: "Atcelts",
+  New: "Jauns",
+  Preparing: "Gatavo",
+  Ready: "Gatavs",
+  Completed: "Pabeigts",
+  Cancelled: "Atcelts",
 };
 
 const STATUS_CLASSES: Record<string, string> = {
-  NEW: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  CONFIRMED: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
-  IN_PROGRESS: "bg-orange-500/15 text-orange-400 border-orange-500/30",
-  DELIVERED: "bg-green-500/15 text-green-400 border-green-500/30",
-  CANCELED: "bg-red-500/15 text-red-400 border-red-500/30",
+  New: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  Preparing: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+  Ready: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+  Completed: "bg-green-500/15 text-green-400 border-green-500/30",
+  Cancelled: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
-const STATUS_OPTIONS = [
-  "NEW",
-  "CONFIRMED",
-  "IN_PROGRESS",
-  "DELIVERED",
-  "CANCELED",
-];
+const STATUS_OPTIONS = ["New", "Preparing", "Ready", "Completed", "Cancelled"];
 
 function StatusBadge({ status }: { status: string }) {
   const cls = STATUS_CLASSES[status] ?? "bg-muted/20 text-muted-foreground";

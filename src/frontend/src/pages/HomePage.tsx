@@ -86,7 +86,7 @@ export function HomePage() {
               size="lg"
               className="border-border/60 hover:border-primary/40 text-foreground/80 hover:text-foreground px-8"
             >
-              <a href="tel:XXXX">Zvanīt: XXXX</a>
+              <a href={`tel:${settings.phone}`}>Zvanīt: {settings.phone}</a>
             </Button>
           </motion.div>
         </div>

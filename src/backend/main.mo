@@ -1,11 +1,11 @@
-import Iter "mo:core/Iter";
 import Map "mo:core/Map";
-import Nat "mo:core/Nat";
-import Order "mo:core/Order";
-import Int "mo:core/Int";
-import Text "mo:core/Text";
-import Time "mo:core/Time";
 import Array "mo:core/Array";
+import Iter "mo:core/Iter";
+import Int "mo:core/Int";
+import Nat "mo:core/Nat";
+import Text "mo:core/Text";
+import Order "mo:core/Order";
+import Time "mo:core/Time";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
@@ -29,10 +29,10 @@ actor {
   };
 
   module Offer {
-    public func compareByFeaturedAndSortOrder(o1 : Offer, o2 : Offer) : Order.Order {
+    public func compareByFeaturedAndSort(o1 : Offer, o2 : Offer) : Order.Order {
       switch (Bool.compare(o2.isFeatured, o1.isFeatured)) {
         case (#equal) { Int.compare(o1.sortOrder, o2.sortOrder) };
-        case (order) { order };
+        case (other) { other };
       };
     };
   };
@@ -61,6 +61,8 @@ actor {
     deliveryNote : Text;
     minOrderCents : Nat;
     currencySymbol : Text;
+    phone : Text;
+    email : Text;
   };
 
   type AdminSession = {
@@ -87,18 +89,6 @@ actor {
     error : ?Text;
   };
 
-  type OffersListResponse = {
-    ok : Bool;
-    data : [Offer];
-    error : ?Text;
-  };
-
-  type OrdersListResponse = {
-    ok : Bool;
-    data : [Order];
-    error : ?Text;
-  };
-
   var adminPassword = "admin123";
   var idCounter = 0;
   var settings : Settings = {
@@ -108,37 +98,149 @@ actor {
     deliveryNote = "Piegāde Rīgā. Precizēsim laiku pēc pasūtījuma.";
     minOrderCents = 0;
     currencySymbol = "€";
+    phone = "+371 XXXXXXXX";
+    email = "sete.latvia@gmail.com";
   };
 
   let offers = Map.empty<Text, Offer>();
   let orders = Map.empty<Text, Order>();
   let sessions = Map.empty<Text, AdminSession>();
 
+  include MixinStorage();
+
+  // Generate unique ID.
   func generateId() : Text {
     idCounter += 1;
     Time.now().toText() # "_" # idCounter.toText();
   };
 
-  include MixinStorage();
+  // Validate session helper.
+  func validateSession(token : Text) {
+    switch (sessions.get(token)) {
+      case (null) { Runtime.trap("Invalid or expired session") };
+      case (?session) {
+        if (session.expiresAt < Time.now()) {
+          sessions.remove(token);
+          Runtime.trap("Invalid or expired session");
+        };
+      };
+    };
+  };
+
+  system func preupgrade() {
+    // No action needed. Rollback until next upgrade.
+  };
+
+  system func postupgrade() {
+    // Seed 3 offers if none exist.
+    if (offers.isEmpty()) {
+      let now = Time.now();
+      let offer1 : Offer = {
+        id = "offer-1";
+        name = "SETE 01";
+        pieces = 48;
+        priceCents = 2490;
+        description = "Assortment of 48 pieces";
+        imageId = null;
+        imageUrl = null;
+        isActive = true;
+        isFeatured = false;
+        sortOrder = 0;
+        createdAt = now;
+        updatedAt = now;
+      };
+      let offer2 : Offer = {
+        id = "offer-2";
+        name = "SETE 02";
+        pieces = 32;
+        priceCents = 1890;
+        description = "Assortment of 32 pieces";
+        imageId = null;
+        imageUrl = null;
+        isActive = true;
+        isFeatured = false;
+        sortOrder = 1;
+        createdAt = now;
+        updatedAt = now;
+      };
+      let offer3 : Offer = {
+        id = "offer-3";
+        name = "SETE PARTY";
+        pieces = 64;
+        priceCents = 3490;
+        description = "Party assortment of 64 pieces";
+        imageId = null;
+        imageUrl = null;
+        isActive = true;
+        isFeatured = false;
+        sortOrder = 2;
+        createdAt = now;
+        updatedAt = now;
+      };
+
+      offers.add(offer1.id, offer1);
+      offers.add(offer2.id, offer2);
+      offers.add(offer3.id, offer3);
+    };
+  };
 
   // Public Queries
   public query ({ caller }) func getSettings() : async Settings {
     settings;
   };
 
-  public query ({ caller }) func listOffersPublic() : async [Offer] {
+  public query ({ caller }) func listOffersPublic() : async {
+    ok : Bool;
+    data : [Offer];
+    error : ?Text;
+  } {
     let activeOffers = offers.values().toArray().filter(
       func(o) { o.isActive }
     );
-    activeOffers.sort(Offer.compareByFeaturedAndSortOrder);
+    let sortedOffers = activeOffers.sort(
+      func(a, b) {
+        switch (Bool.compare(b.isFeatured, a.isFeatured)) {
+          case (#equal) { Int.compare(a.sortOrder, b.sortOrder) };
+          case (order) { order };
+        };
+      }
+    );
+    {
+      ok = true;
+      data = sortedOffers;
+      error = null;
+    };
   };
 
-  public query ({ caller }) func getOfferById(id : Text) : async ?Offer {
-    offers.get(id);
+  public query ({ caller }) func getOfferById(id : Text) : async {
+    ok : Bool;
+    offer : ?Offer;
+    error : ?Text;
+  } {
+    switch (offers.get(id)) {
+      case (null) {
+        {
+          ok = false;
+          offer = null;
+          error = ?"Offer not found";
+        };
+      };
+      case (?offer) {
+        { ok = true; offer = ?offer; error = null };
+      };
+    };
   };
 
   // Order Creation
-  public shared ({ caller }) func createOrder(offerId : Text, customerPhone : Text, customerName : Text, deliveryType : Text, address : Text, desiredTime : Text, notes : Text) : async CreateOrderResponse {
+  public shared ({ caller }) func createOrder(
+    offerId : Text,
+    customerPhone : Text,
+    customerName : Text,
+    deliveryType : Text,
+    address : Text,
+    desiredTime : Text,
+    notes : Text
+  ) : async CreateOrderResponse {
     if (customerPhone.size() < 6) {
       return {
         ok = false;
@@ -157,7 +259,11 @@ actor {
 
     switch (offers.get(offerId)) {
       case (null) {
-        { ok = false; orderId = null; error = ?"Offer not found" };
+        return {
+          ok = false;
+          orderId = null;
+          error = ?"Offer not found";
+        };
       };
       case (?offer) {
         if (not offer.isActive) {
@@ -172,7 +278,7 @@ actor {
         let newOrder : Order = {
           id = orderId;
           createdAt = Time.now();
-          statusText = "PENDING";
+          statusText = "New";
           offerId;
           offerName = offer.name;
           offerPieces = offer.pieces;
@@ -220,13 +326,30 @@ actor {
     { ok = true };
   };
 
+  // OffersListResponse type
+  type OffersListResponse = {
+    ok : Bool;
+    data : [Offer];
+    error : ?Text;
+  };
+
   // Admin Offer Management
   public query ({ caller }) func adminListOffers(token : Text) : async OffersListResponse {
     validateSession(token);
-    { ok = true; data = offers.values().toArray(); error = null };
+    {
+      ok = true;
+      data = offers.values().toArray();
+      error = null;
+    };
   };
 
-  public shared ({ caller }) func adminCreateOffer(token : Text, name : Text, pieces : Nat, priceCents : Nat, description : Text) : async {
+  public shared ({ caller }) func adminCreateOffer(
+    token : Text,
+    name : Text,
+    pieces : Nat,
+    priceCents : Nat,
+    description : Text
+  ) : async {
     ok : Bool;
     id : ?Text;
     error : ?Text;
@@ -251,10 +374,22 @@ actor {
     { ok = true; id = ?id; error = null };
   };
 
-  public shared ({ caller }) func adminUpdateOffer(token : Text, id : Text, name : Text, pieces : Nat, priceCents : Nat, description : Text) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminUpdateOffer(
+    token : Text,
+    id : Text,
+    name : Text,
+    pieces : Nat,
+    priceCents : Nat,
+    description : Text
+  ) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     switch (offers.get(id)) {
-      case (null) { Runtime.trap("Offer not found") };
+      case (null) {
+        { ok = false; error = ?"Offer not found" };
+      };
       case (?offer) {
         let updatedOffer : Offer = {
           id;
@@ -276,16 +411,24 @@ actor {
     };
   };
 
-  public shared ({ caller }) func adminDeleteOffer(token : Text, id : Text) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminDeleteOffer(token : Text, id : Text) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     offers.remove(id);
     { ok = true; error = null };
   };
 
-  public shared ({ caller }) func adminToggleActive(token : Text, id : Text, isActive : Bool) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminToggleActive(token : Text, id : Text, isActive : Bool) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     switch (offers.get(id)) {
-      case (null) { Runtime.trap("Offer not found") };
+      case (null) {
+        { ok = false; error = ?"Offer not found" };
+      };
       case (?offer) {
         let updatedOffer : Offer = {
           id = offer.id;
@@ -307,10 +450,15 @@ actor {
     };
   };
 
-  public shared ({ caller }) func adminSetFeatured(token : Text, id : Text, isFeatured : Bool) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminSetFeatured(token : Text, id : Text, isFeatured : Bool) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     switch (offers.get(id)) {
-      case (null) { Runtime.trap("Offer not found") };
+      case (null) {
+        { ok = false; error = ?"Offer not found" };
+      };
       case (?offer) {
         let updatedOffer : Offer = {
           id = offer.id;
@@ -332,10 +480,15 @@ actor {
     };
   };
 
-  public shared ({ caller }) func adminSetSortOrder(token : Text, id : Text, sortOrder : Int) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminSetSortOrder(token : Text, id : Text, sortOrder : Int) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     switch (offers.get(id)) {
-      case (null) { Runtime.trap("Offer not found") };
+      case (null) {
+        { ok = false; error = ?"Offer not found" };
+      };
       case (?offer) {
         let updatedOffer : Offer = {
           id = offer.id;
@@ -357,10 +510,15 @@ actor {
     };
   };
 
-  public shared ({ caller }) func adminUpdateOfferImage(token : Text, id : Text, imageId : Text, imageUrl : Text) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminUpdateOfferImage(token : Text, id : Text, imageId : Text, imageUrl : Text) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     switch (offers.get(id)) {
-      case (null) { Runtime.trap("Offer not found") };
+      case (null) {
+        { ok = false; error = ?"Offer not found" };
+      };
       case (?offer) {
         let updatedOffer : Offer = {
           id = offer.id;
@@ -382,6 +540,13 @@ actor {
     };
   };
 
+  // OrdersListResponse type
+  type OrdersListResponse = {
+    ok : Bool;
+    data : [Order];
+    error : ?Text;
+  };
+
   // Admin Order Management
   public query ({ caller }) func adminListOrders(token : Text, statusFilter : ?Text) : async OrdersListResponse {
     validateSession(token);
@@ -399,7 +564,10 @@ actor {
     { ok = true; data = filteredOrders; error = null };
   };
 
-  public shared ({ caller }) func adminUpdateOrderStatus(token : Text, orderId : Text, newStatus : Text) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminUpdateOrderStatus(token : Text, orderId : Text, newStatus : Text) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     switch (orders.get(orderId)) {
       case (null) { Runtime.trap("Order not found") };
@@ -427,7 +595,20 @@ actor {
   };
 
   // Admin Settings Update
-  public shared ({ caller }) func adminUpdateSettings(token : Text, brandName : Text, pickupAddress : Text, workHoursText : Text, deliveryNote : Text, minOrderCents : Nat, currencySymbol : Text) : async { ok : Bool; error : ?Text } {
+  public shared ({ caller }) func adminUpdateSettings(
+    token : Text,
+    brandName : Text,
+    pickupAddress : Text,
+    workHoursText : Text,
+    deliveryNote : Text,
+    minOrderCents : Nat,
+    currencySymbol : Text,
+    phone : Text,
+    email : Text
+  ) : async {
+    ok : Bool;
+    error : ?Text;
+  } {
     validateSession(token);
     settings := {
       brandName;
@@ -436,12 +617,20 @@ actor {
       deliveryNote;
       minOrderCents;
       currencySymbol;
+      phone;
+      email;
     };
     { ok = true; error = null };
   };
 
   // Image Upload to Blob Storage
-  public shared ({ caller }) func adminUploadOfferImage(token : Text, offerId : Text, imageBytes : [Nat8], mimeType : Text, filename : Text) : async UploadImageResponse {
+  public shared ({ caller }) func adminUploadOfferImage(
+    token : Text,
+    offerId : Text,
+    imageBytes : [Nat8],
+    mimeType : Text,
+    filename : Text
+  ) : async UploadImageResponse {
     validateSession(token);
 
     switch (offers.get(offerId)) {
@@ -449,26 +638,10 @@ actor {
         { ok = false; imageId = null; imageUrl = null; error = ?"Offer not found" };
       };
       case (?_) {
-        // Store image in BlobStorage
         let generateImageId = generateId();
         let url = "";
-        // Actual blob-storage logic would go here
         { ok = true; imageId = ?generateImageId; imageUrl = ?url; error = null };
       };
     };
   };
-
-  // Helper function to validate session
-  func validateSession(token : Text) : () {
-    switch (sessions.get(token)) {
-      case (null) { Runtime.trap("Invalid or expired session") };
-      case (?session) {
-        if (session.expiresAt < Time.now()) {
-          sessions.remove(token);
-          Runtime.trap("Invalid or expired session");
-        };
-      };
-    };
-  };
 };
-

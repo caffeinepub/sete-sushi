@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useState } from "react";
 import type { Offer } from "../apiClient";
+import { CartDrawer } from "../components/CartDrawer";
 import { Layout } from "../components/Layout";
 import { OfferCard } from "../components/OfferCard";
-import { OrderModal } from "../components/OrderModal";
 import { useActor } from "../hooks/useActor";
 
 function OffersSkeleton() {
@@ -27,8 +27,7 @@ function OffersSkeleton() {
 
 export function OffersPage() {
   const { actor, isFetching: actorLoading } = useActor();
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
 
   const { data: offers = [], isLoading } = useQuery<Offer[]>({
     queryKey: ["offers-public"],
@@ -36,7 +35,7 @@ export function OffersPage() {
       if (!actor) return [];
       const result = await actor.listOffersPublic();
       // Sort: featured first, then by sortOrder
-      return [...result].sort((a, b) => {
+      return [...result.data].sort((a, b) => {
         if (a.isFeatured && !b.isFeatured) return -1;
         if (!a.isFeatured && b.isFeatured) return 1;
         return Number(a.sortOrder) - Number(b.sortOrder);
@@ -45,13 +44,8 @@ export function OffersPage() {
     enabled: !!actor && !actorLoading,
   });
 
-  const handleOrder = (offer: Offer) => {
-    setSelectedOffer(offer);
-    setModalOpen(true);
-  };
-
   return (
-    <Layout>
+    <Layout onCartOpen={() => setCartOpen(true)}>
       <div className="container mx-auto px-4 sm:px-6 py-10">
         {/* Page header */}
         <motion.div
@@ -88,22 +82,13 @@ export function OffersPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {offers.map((offer, idx) => (
-              <OfferCard
-                key={offer.id}
-                offer={offer}
-                index={idx + 1}
-                onOrder={handleOrder}
-              />
+              <OfferCard key={offer.id} offer={offer} index={idx + 1} />
             ))}
           </div>
         )}
       </div>
 
-      <OrderModal
-        offer={selectedOffer}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-      />
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
     </Layout>
   );
 }

@@ -6,8 +6,9 @@ import {
 } from "@tanstack/react-router";
 import { createRootRoute, createRoute } from "@tanstack/react-router";
 import { Outlet } from "@tanstack/react-router";
-import { createContext, useContext } from "react";
+import { useContext } from "react";
 
+import { CheckoutPage } from "./pages/CheckoutPage";
 // Pages
 import { HomePage } from "./pages/HomePage";
 import { OffersPage } from "./pages/OffersPage";
@@ -22,6 +23,9 @@ import { SettingsPage } from "./pages/admin/SettingsPage";
 
 // Auth
 import { AuthContext, useAuthState } from "./hooks/useAuth";
+
+// Cart
+import { CartProvider } from "./context/CartContext";
 
 // ── Auth Guard ──────────────────────────────────────────────────────────────
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -72,6 +76,12 @@ const thanksRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/order/thanks",
   component: ThanksPage,
+});
+
+const checkoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/checkout",
+  component: CheckoutPage,
 });
 
 // ── Admin Routes ─────────────────────────────────────────────────────────────
@@ -146,6 +156,7 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   offersRoute,
   thanksRoute,
+  checkoutRoute,
   adminLoginRoute,
   adminDashboardRoute,
   adminOffersRoute,
@@ -174,7 +185,9 @@ export default function App() {
 
   return (
     <AuthContext.Provider value={authState}>
-      <RouterProvider router={router} />
+      <CartProvider>
+        <RouterProvider router={router} />
+      </CartProvider>
     </AuthContext.Provider>
   );
 }
